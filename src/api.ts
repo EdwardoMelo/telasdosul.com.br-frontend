@@ -2,8 +2,8 @@
 import axios from 'axios';
 
 export const api = axios.create({
-  baseURL: "http://localhost:3000",
-  // baseURL: "https://api.sulfire.com.br",
+  // baseURL: "http://localhost:3000",
+  baseURL: "https://apitelasdosul.eduardomelodev.com",
   headers: {
     "Content-Type": "application/json",
     'Accept': 'application/json'

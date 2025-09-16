@@ -188,28 +188,14 @@ const App = () => {
             }}
             onClick={() =>
               window.open(
-                `https://api.whatsapp.com/send?phone=${contactInfo.phone}&text=Oi, vim pelo site,gostaria de saber mais sobre os produtos e serviços da SulFire!`
+                `https://api.whatsapp.com/send?phone=${contactInfo.phone}&text=Oi, vim pelo site,gostaria de saber mais sobre os produtos e serviços da Telas do Sul!`
               )
             }
           >
             <WhatsApp sx={{ color: "green" }} />
           </IconButton>
 
-          <IconButton
-            sx={{
-              backgroundColor: "white",
-              height: 50,
-              width: 50,
-              color: "white",
-              boxShadow: "0 0 10px 4px red", // Neon pink shadow
-              "&:hover": {
-                boxShadow: "0 0 24px 8px red",
-              },
-            }}
-            onClick={() => window.open("https://www.instagram.com")}
-          >
-            <Instagram sx={{ color: red[500] }} />
-          </IconButton>
+          
         </Box>
       </ThemeProvider>
     </QueryClientProvider>

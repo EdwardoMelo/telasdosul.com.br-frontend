@@ -203,7 +203,7 @@ const ProductDetail = () => {
               color="primary"
               onClick={() =>
                 window.open(
-                  `https://api.whatsapp.com/send?phone=${contactInfo.phone}text=Oi, vim pelo site,gostaria de saber mais sobre o produto ${produto.nome}, código ${produto.id}!`
+                  `https://api.whatsapp.com/send?phone=${contactInfo.phone}&text=Oi, vim pelo site,gostaria de saber mais sobre o produto ${produto.nome}, código ${produto.id}!`
                 )
               }
               sx={{

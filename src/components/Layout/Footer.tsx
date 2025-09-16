@@ -49,22 +49,21 @@ const socialLinks = [
   {
     icon: <Facebook />,
     label: "facebook",
-    href: "https://www.facebook.com/Telas e Cia RS/",
+    href: "https://www.facebook.com/Telas do Sul/",
   },
   {
     icon: <Instagram />,
     label: "instagram",
-    href: "https://www.instagram.com/Telas e Cia RS_sl/",
+    href: "https://www.instagram.com/Telas do Sul_sl/",
   },
   {
     icon: <WhatsApp />,
     label: "whatsapp",
-    href: "https://api.whatsapp.com/send?phone=5194475384&text=Olá, vim pelo site da Telas e Cia RS!",
+    href: `https://api.whatsapp.com/send?phone=${contactInfo.phone}&text=Olá, vim pelo site da Telas do Sul!`,
   },
 ];
 
 const Footer = () => {
-
   const [categorias, setCategorias] = React.useState([]);
 
   useEffect(() => {
@@ -73,20 +72,20 @@ const Footer = () => {
         const categoriaData = await Categoria.getAll();
         setCategorias(categoriaData);
       } catch (error) {
-        console.error('Erro ao buscar categorias:', error);
+        console.error("Erro ao buscar categorias:", error);
       }
     };
     fetchCategorias();
-  }, [])
+  }, []);
 
   return (
-    <FooterContainer sx={{backgroundColor: 'primary.main'}}>
+    <FooterContainer sx={{ backgroundColor: "primary.main" }}>
       <Container>
         <Grid container spacing={4}>
           {/* Logo e Descrição */}
           <Grid item xs={12} sm={6} md={3}>
             <Typography variant="body2" sx={{ mb: 2 }}>
-               A melhor loja de telas do Rio Grande do Sul.
+              A melhor loja de telas do Rio Grande do Sul.
             </Typography>
             <Box display="flex" alignItems="center">
               {socialLinks.map((link) => (
@@ -130,9 +129,7 @@ const Footer = () => {
             <SectionTitle variant="h6">Contato</SectionTitle>
             <ContactItem>
               <LocationOn sx={{ mr: 1, color: "primary.main" }} />
-              <Typography variant="body2">
-               {contactInfo.address}
-              </Typography>
+              <Typography variant="body2">{contactInfo.address}</Typography>
             </ContactItem>
             <ContactItem>
               <Phone sx={{ mr: 1, color: "primary.main" }} />
@@ -144,7 +141,9 @@ const Footer = () => {
             </ContactItem>
             <ContactItem>
               <Email sx={{ mr: 1, color: "primary.main" }} />
-              <Typography variant="body2">contato@telaseciars.com.br</Typography>
+              <Typography variant="body2">
+                contato@telaseciars.com.br
+              </Typography>
             </ContactItem>
           </Grid>
         </Grid>
@@ -159,7 +158,7 @@ const Footer = () => {
           }}
         >
           <Typography variant="body2">
-            © {new Date().getFullYear()} Telas e Cia RS. Todos os direitos
+            © {new Date().getFullYear()} Telas do Sul. Todos os direitos
             reservados.
           </Typography>
         </Box>

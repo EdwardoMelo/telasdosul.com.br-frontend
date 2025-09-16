@@ -90,7 +90,7 @@ const PreNavbar = ({ background }: props) => {
             }}
             disableRipple
           >
-            Telas e Cia RS - Fornecedora
+            Telas do Sul - Fornecedora
           </Button>
         </Grid>
 
@@ -109,7 +109,7 @@ const PreNavbar = ({ background }: props) => {
           <Button
             onClick={() =>
               window.open(
-                `https://api.whatsapp.com/send?phone=${contactInfo.phone}&text=Olá, vim pelo site da Sulfire!`,
+                `https://api.whatsapp.com/send?phone=${contactInfo.phone}&text=Olá, vim pelo site da Telas da Sul!`,
                 "_blank"
               )
             }

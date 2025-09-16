@@ -27,7 +27,7 @@ import EmailIcon from "@mui/icons-material/Email";
 import LocalPhoneIcon from "@mui/icons-material/LocalPhone";
 import PreNavbar from "../ui/PreNavbar";
 import SearchIcon from "@mui/icons-material/Search";
-
+import logo from '../../assets/logo.png';
 
 import { set } from "date-fns";
 import CategoryNavbar from "../ui/CategoryNavbar";
@@ -245,6 +245,7 @@ const Navbar = () => {
         >
           <Stack
             direction="row"
+            alignItems={"center"}
             sx={{
               width: {
                 xs: "100%",
@@ -253,7 +254,12 @@ const Navbar = () => {
               flexWrap: "wrap",
             }}
           >
-            {/*LOGO */}
+            <Box component='img' 
+             src={logo}
+             sx={{ cursor: 'pointer', height: 70
+             }}
+             onClick={() => navigate('/')}
+            />
 
             {/*Serach e links */}
             <Box

@@ -231,9 +231,7 @@ const Home = () => {
                     style={{ display: "inline-block" }}
                     variants={heroItemVariants}
                   >
-                    <span style={{ color: "primary.main" }}>
-                      Telas e Cia RS
-                    </span>
+                    <span style={{ color: "primary.main" }}>Telas do Sul</span>
                   </motion.span>
                 </Typography>
               </motion.div>
@@ -312,7 +310,7 @@ const Home = () => {
                       fontFamily: "Poppins, sans-serif",
                     }}
                   >
-                    Qualidade e confiança, é na Telas e Cia RS
+                    Qualidade e confiança, é na Telas do Sul
                   </Typography>
                   <Typography
                     variant="body1"
@@ -373,7 +371,7 @@ const Home = () => {
           width: "100%",
           color: "white",
           py: 8,
-          minHeight: '70vh',
+          minHeight: "70vh",
           backgroundSize: "cover",
           backgroundPosition: "center",
           position: "relative",
@@ -443,7 +441,7 @@ const Home = () => {
                   <Button
                     variant="contained"
                     component="a"
-                    href="https://api.whatsapp.com/send?phone=5194475384&text=Oi, vim pelo site,gostaria de saber mais sobre os produtos e serviços da SulFire!"
+                    href="https://api.whatsapp.com/send?phone=5194475384&text=Oi, vim pelo site,gostaria de saber mais sobre os produtos e serviços da Telas do Sul!"
                     target="_blank"
                     size="large"
                     sx={{
