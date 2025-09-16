@@ -1,7 +1,7 @@
 
 import React, { useEffect } from 'react';
 import { Box, Container, Grid, Typography, Link, IconButton } from '@mui/material';
-import { Facebook, Instagram, LinkedIn, WhatsApp, Email, Phone, LocationOn, ContactPhone } from '@mui/icons-material';
+import {  WhatsApp, Email, Phone, LocationOn, ContactPhone } from '@mui/icons-material';
 import { styled } from '@mui/system';
 import { Categoria } from '@/models/Categoria';
 import { contactInfo } from '@/utils';
@@ -46,16 +46,6 @@ const ContactItem = styled(Box)({
 });
 
 const socialLinks = [
-  {
-    icon: <Facebook />,
-    label: "facebook",
-    href: "https://www.facebook.com/Telas do Sul/",
-  },
-  {
-    icon: <Instagram />,
-    label: "instagram",
-    href: "https://www.instagram.com/Telas do Sul_sl/",
-  },
   {
     icon: <WhatsApp />,
     label: "whatsapp",
@@ -128,22 +118,20 @@ const Footer = () => {
           <Grid item xs={12} sm={6} md={3}>
             <SectionTitle variant="h6">Contato</SectionTitle>
             <ContactItem>
-              <LocationOn sx={{ mr: 1, color: "primary.main" }} />
+              <LocationOn sx={{ mr: 1, color: "white" }} />
               <Typography variant="body2">{contactInfo.address}</Typography>
             </ContactItem>
             <ContactItem>
-              <Phone sx={{ mr: 1, color: "primary.main" }} />
+              <ContactPhone sx={{ mr: 1, color: "white" }} />
               <Typography variant="body2">{contactInfo.phone}</Typography>
             </ContactItem>
             <ContactItem>
-              <WhatsApp sx={{ mr: 1, color: "primary.main" }} />
+              <WhatsApp sx={{ mr: 1, color: "white" }} />
               <Typography variant="body2">{contactInfo.phone}</Typography>
             </ContactItem>
             <ContactItem>
-              <Email sx={{ mr: 1, color: "primary.main" }} />
-              <Typography variant="body2">
-                contato@telaseciars.com.br
-              </Typography>
+              <Email sx={{ mr: 1, color: "white" }} />
+              <Typography variant="body2">{contactInfo.email}</Typography>
             </ContactItem>
           </Grid>
         </Grid>

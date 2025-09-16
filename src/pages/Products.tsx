@@ -506,26 +506,7 @@ const Products = () => {
                           </Typography>
                         </ProductContent>
                         <CardActions>
-                          <Button
-                            size="small"
-                            variant="contained"
-                            fullWidth
-                            onClick={() => navigateToProduct(produto.id)}
-                            sx={{
-                              bgcolor: "primary.main",
-                              "&:hover": {
-                                backgroundColor: "primary.main",
-                                scale: 1.1,
-                              },
-                              maxWidth: 200,
-                              transition: "all 0.3s ease-in-out",
-                              color: "white",
-                              textTransform: "uppercase",
-                              fontSize: { xs: 12, sm: 14 },
-                            }}
-                          >
-                            Ver mais
-                          </Button>
+                        
                         </CardActions>
                       </ProductCard>
                     </motion.div>

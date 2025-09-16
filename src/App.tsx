@@ -31,7 +31,7 @@ import ProductDetail from "./pages/ProductDetail";
 import ProductForm from "./pages/ProductForm";
 import CategoriaForm from "./pages/CategoriaForm"; // Import CategoriaForm
 import Profile from "./pages/Profile";
-import { Instagram, WhatsApp } from "@mui/icons-material";
+import {  WhatsApp } from "@mui/icons-material";
 import Contact from "./pages/Contact";
 import { NavProvider } from "./contexts/navContext";
 import { ProductProvider } from "./contexts/productContext";
