@@ -179,6 +179,7 @@ const AdminProducts = () => {
                 "&:hover": {
                   bgcolor: "primary.main",
                 },
+                color: "white"
               }}
             >
               Novo Produto

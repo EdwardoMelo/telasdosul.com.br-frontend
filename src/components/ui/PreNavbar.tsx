@@ -197,7 +197,7 @@ const PreNavbar = ({ background }: props) => {
                   >
                     Meu Perfil
                   </MenuItem>
-                  {user.tipo_usuario?.tipo === "administrador" && (
+                  {user.tipo_usuario?.tipo === "adm" && (
                     <MenuItem onClick={handleAdminPanel}>Painel Admin</MenuItem>
                   )}
                   <MenuItem onClick={handleLogout}>Sair</MenuItem>

@@ -454,7 +454,7 @@ const Products = () => {
                           component="img"
                           title={produto.nome}
                           image={produto.imagem}
-                          sx={{ height: 200, objectFit: "contain" }}
+                          sx={{ height: 200, objectFit: "cover" }}
                         ></CardMedia>
                         <ProductContent>
                           <Typography

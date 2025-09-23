@@ -182,7 +182,7 @@ const ProductDetail = () => {
               alt={produto.nome}
               sx={{
                 width: "100%",
-                objectFit: "contain",
+                objectFit: "cover",
                 maxHeight: { 
                   md: '350px',
                   lg: '400px',
