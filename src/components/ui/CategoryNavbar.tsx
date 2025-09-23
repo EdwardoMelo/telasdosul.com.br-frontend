@@ -94,7 +94,7 @@ const CategoryNavbar = ({visible} : props) => {
             sx={{
               color: "white",
               fontWeight: 500,
-              fontSize: "small",
+              fontSize: "normal",
               fonWeight: 'bold',
               fontFamily: "Poppins",
               textTransform: 'capitalize'
