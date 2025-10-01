@@ -3,7 +3,7 @@ import { api } from "./api";
 
 
 export const contactInfo = {
-  phone: "+55 51 999736919",
+  phone: "+55 51 99596-0844",
   email: "telasdosul@hotmail.com",
   instagram: "/",
   facebook: "/",

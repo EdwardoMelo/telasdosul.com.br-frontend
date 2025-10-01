@@ -166,7 +166,7 @@ const App = () => {
             width: "100%",
             zIndex: 40,
             position: "fixed",
-            bottom: 0,
+            bottom: 10,
             left: 0,
             backgroundColor: "transparent",
             display: "flex",
@@ -178,8 +178,8 @@ const App = () => {
           <IconButton
             sx={{
               backgroundColor: "white",
-              height: 50,
-              width: 50,
+              height: 60,
+              width: 60,
               color: "white",
               boxShadow: "0 0 10px 4px #39ff14", // Neon green shadow
               "&:hover": {
