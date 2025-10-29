@@ -16,6 +16,31 @@
       gtag('js', new Date());
 
       gtag('config', 'AW-17620056818');
+            function gtag_report_conversion(url) {
+              var callback = function () {
+                if (typeof (url) != 'undefined') {
+                  window.location = url;
+                }
+              };
+              gtag('event', 'conversion', {
+                'send_to': 'AW-17620056818/OUesCJ3JzLMbEPL18tFB',
+                'event_callback': callback
+              });
+              return false;
+            }
+
+            function gtag_report_conversion_solicitar(url) {
+              var callback = function () {
+                if (typeof (url) != 'undefined') {
+                  window.location = url;
+                }
+              };
+              gtag('event', 'conversion', {
+                'send_to': 'AW-17620056818/YwS5CMKu2LMbEPL18tFB',
+                'event_callback': callback
+              });
+              return false;
+            }
     </script>
 
   </head>

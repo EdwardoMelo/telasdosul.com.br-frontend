@@ -23,7 +23,7 @@ import { Produto } from "../models/Produto";
 import { blue } from "@mui/material/colors";
 import { useUser } from "@/contexts/userContext";
 import EditIcon from "@mui/icons-material/Edit";
-import { contactInfo } from "@/utils";
+import { contactInfo, openWhatsappWithConversionSolicitar } from "@/utils";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -202,7 +202,7 @@ const ProductDetail = () => {
               variant="contained"
               color="primary"
               onClick={() =>
-                window.open(
+                openWhatsappWithConversionSolicitar(
                   `https://api.whatsapp.com/send?phone=${contactInfo.phone}&text=Oi, vim pelo site,gostaria de saber mais sobre o produto ${produto.nome}, código ${produto.id}!`
                 )
               }

@@ -23,3 +23,30 @@ const sendContactForm = async (data) => {
 }
 
 export  {sendContactForm}
+
+declare global {
+  interface Window {
+    gtag_report_conversion?: (url?: string) => boolean;
+    gtag_report_conversion_solicitar?: (url?: string) => boolean;
+  }
+}
+
+export function openWhatsappWithConversion(url: string): void {
+  if (typeof window !== 'undefined' && typeof window.gtag_report_conversion === 'function') {
+    // gtag_report_conversion will handle navigation via callback
+    window.gtag_report_conversion(url);
+  } else {
+    window.open(url, '_blank');
+  }
+}
+
+export function openWhatsappWithConversionSolicitar(url: string): void {
+  if (typeof window !== 'undefined' && typeof window.gtag_report_conversion_solicitar === 'function') {
+    window.gtag_report_conversion_solicitar(url);
+  } else if (typeof window !== 'undefined' && typeof window.gtag_report_conversion === 'function') {
+    // fallback to generic conversion if specific is not available
+    window.gtag_report_conversion(url);
+  } else {
+    window.open(url, '_blank');
+  }
+}

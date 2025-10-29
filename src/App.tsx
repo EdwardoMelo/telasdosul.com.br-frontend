@@ -35,7 +35,7 @@ import {  WhatsApp } from "@mui/icons-material";
 import Contact from "./pages/Contact";
 import { NavProvider } from "./contexts/navContext";
 import { ProductProvider } from "./contexts/productContext";
-import { contactInfo } from "./utils";
+import { contactInfo, openWhatsappWithConversion } from "./utils";
 
 // Configuração do cliente de consulta
 const queryClient = new QueryClient();
@@ -186,11 +186,7 @@ const App = () => {
                 boxShadow: "0 0 24px 8px #39ff14",
               },
             }}
-            onClick={() =>
-              window.open(
-                `https://api.whatsapp.com/send?phone=${contactInfo.phone}&text=Oi, vim pelo site,gostaria de saber mais sobre os produtos e serviços da Telas do Sul!`
-              )
-            }
+            onClick={() => openWhatsappWithConversion(`https://api.whatsapp.com/send?phone=${contactInfo.phone}&text=Oi, vim pelo site,gostaria de saber mais sobre os produtos e serviços da Telas do Sul!`)}
           >
             <WhatsApp sx={{ color: "green" }} />
           </IconButton>

@@ -15,7 +15,7 @@ import Avatar from "@mui/material/Avatar";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import { useUser } from "@/contexts/userContext";
-import { contactInfo } from "@/utils";
+import { contactInfo, openWhatsappWithConversion } from "@/utils";
 
 interface props {
   background?: string;
@@ -108,9 +108,8 @@ const PreNavbar = ({ background }: props) => {
         >
           <Button
             onClick={() =>
-              window.open(
-                `https://api.whatsapp.com/send?phone=${contactInfo.phone}&text=Olá, vim pelo site da Telas da Sul!`,
-                "_blank"
+              openWhatsappWithConversion(
+                `https://api.whatsapp.com/send?phone=${contactInfo.phone}&text=Olá, vim pelo site da Telas da Sul!`
               )
             }
             startIcon={<WhatsAppIcon sx={{ color: "secondary.main" }} />}

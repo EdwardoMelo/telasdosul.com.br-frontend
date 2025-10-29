@@ -4,7 +4,7 @@ import { Box, Container, Grid, Typography, Link, IconButton } from '@mui/materia
 import {  WhatsApp, Email, Phone, LocationOn, ContactPhone } from '@mui/icons-material';
 import { styled } from '@mui/system';
 import { Categoria } from '@/models/Categoria';
-import { contactInfo } from '@/utils';
+import { contactInfo, openWhatsappWithConversion } from '@/utils';
 
 const FooterContainer = styled(Box)({
   borderTop: '1px solid white',
@@ -83,7 +83,7 @@ const Footer = () => {
                   <SocialIcon
                     size="small"
                     aria-label={link.label}
-                    onClick={() => window.open(link.href)}
+                    onClick={() => openWhatsappWithConversion(link.href)}
                   >
                     {link.icon}
                   </SocialIcon>

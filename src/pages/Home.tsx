@@ -25,7 +25,7 @@ import { motion } from "framer-motion";
 import Products from "./Products";
 import footer from '../assets/footer.jpg';
 import hero from '../assets/hero.jpg'
-import { contactInfo } from "@/utils";
+import { contactInfo, openWhatsappWithConversion } from "@/utils";
 
 const HeroBanner = styled(Box)({
   width: '100%',
@@ -441,9 +441,10 @@ const Home = () => {
                 >
                   <Button
                     variant="contained"
-                    component="a"
-                    href={`https://api.whatsapp.com/send?phone=${contactInfo.phone}&text=Oi, vim pelo site,gostaria de saber mais sobre os produtos e serviços da Telas do Sul!`}
-                    target="_blank"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      openWhatsappWithConversion(`https://api.whatsapp.com/send?phone=${contactInfo.phone}&text=Oi, vim pelo site,gostaria de saber mais sobre os produtos e serviços da Telas do Sul!`);
+                    }}
                     size="large"
                     sx={{
                       "&:hover": {
