@@ -5,6 +5,7 @@ import { Categoria } from "@/models/Categoria";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { formatCategoryLabel } from "@/utils";
+import { FONT_BODY } from "@/theme/typography";
 
 
 interface props{ 
@@ -95,9 +96,8 @@ const CategoryNavbar = ({visible} : props) => {
             sx={{
               color: "white",
               fontWeight: 500,
-              fontSize: "normal",
-              fonWeight: 'bold',
-              fontFamily: "Poppins",
+              fontFamily: FONT_BODY,
+              fontSize: { xs: 13, sm: 14 },
               textTransform: "none",
             }}
           >

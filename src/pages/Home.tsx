@@ -23,23 +23,11 @@ import {
 import { Stack, styled } from "@mui/system";
 import { motion } from "framer-motion";
 import Products from "./Products";
-import footer from '../assets/footer.jpg';
 import hero from '../assets/hero.jpg'
 import { contactInfo, openWhatsappWithConversion } from "@/utils";
-
-const HeroBanner = styled(Box)({
-  width: '100%',
-  position: "relative",
-  backgroundSize: "cover",
-  backgroundPosition: "center",
-  color: "white",
-  padding: "150px 50px",
-  textAlign: "center",
-  display: "flex",
-  flexDirection: "column",
-  justifyContent: "center",
-  alignItems: "start",
-});
+import HeroSection from "@/components/home/HeroSection";
+import { usePageSeo } from "@/hooks/usePageSeo";
+import { FONT_BODY, FONT_DISPLAY } from "@/theme/typography";
 
 const SectionTitle = styled(Typography)({
   position: "relative",
@@ -81,59 +69,14 @@ const ValueCard = styled(Box)({
   padding: 8,
 });
 
-const HeaderBackground = ( ) => { 
-  return (
-    <>
-      <Box
-        component="img"
-        src={footer}
-        alt="Hero Image"
-        sx={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          objectFit: "cover",
-          width: "100%",
-          height: "100%",
-          zIndex: 10,
-        }}
-      ></Box>
-      <Box
-        sx={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          background: "rgba(0, 0, 0, 0.4)", // Linear gradient with transparency
-          zIndex: 15,
-        }}
-      ></Box>
-    </>
-  );
-}
+const HOME_SEO = {
+  title: "Telas do Sul | Telas, Arames e Gradis — Fornecedora RS",
+  description:
+    "Fornecedora de telas soldadas, arames farpados, gradis e acessórios para cercamento no Rio Grande do Sul. Orçamento rápido e atendimento especializado.",
+};
 
 const Home = () => {
-  // Animation variants
-  const heroContainerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        delay: 0.2,
-        staggerChildren: 0.3,
-      },
-    },
-  };
-
-  const heroItemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.6, ease: "easeOut" },
-    },
-  };
+  usePageSeo(HOME_SEO);
 
   const sectionTitleVariants = {
     hidden: { opacity: 0, x: -50 },
@@ -180,98 +123,7 @@ const Home = () => {
     <Box
       sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}
     >
-      {/* Hero Section */}
-      <HeroBanner id="hero-section">
-        <HeaderBackground />
-        <Box
-          sx={{
-            zIndex: 20,
-            color: "white",
-            width: {
-              xs: "100%",
-              sm: "80%",
-              md: "50%",
-            },
-            position: "relative",
-            padding: 1,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "end",
-          }}
-        >
-          <Box
-            sx={{
-              width: {
-                xs: "100%",
-                sm: "90%",
-                md: "80%",
-              },
-
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "start",
-            }}
-          >
-            <motion.div
-              variants={heroContainerVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              <motion.div variants={heroItemVariants}>
-                <Typography
-                  sx={{
-                    fontSize: "2.5rem",
-                    fontWeight: 700,
-                    mb: 2,
-                    textAlign: "left",
-                    fontFamily: "Poppins, sans-serif",
-                  }}
-                >
-                  Bem vindo a{" "}
-                  <motion.span
-                    style={{ display: "inline-block" }}
-                    variants={heroItemVariants}
-                  >
-                    <span style={{ color: "primary.main" }}>Telas do Sul</span>
-                  </motion.span>
-                </Typography>
-              </motion.div>
-              <motion.div variants={heroItemVariants}>
-                <Typography
-                  fontSize="1.5rem"
-                  fontStyle={"italic"}
-                  sx={{ mb: 4, textAlign: "left" }}
-                >
-                  Protegendo seu espaço com qualidade e confiança.
-                </Typography>
-              </motion.div>
-              <motion.div
-                style={{ width: "fit-content" }}
-                variants={heroItemVariants}
-              >
-                <Button
-                  component={RouterLink}
-                  size="large"
-                  variant="contained"
-                  to="/produtos"
-                  sx={{
-                    "&:hover": {
-                      bgcolor: "primary.main",
-                      color: "secondary.light",
-                      scale: 1.1,
-                    },
-                    transition: "all 0.3s ease-in-out",
-                    color: "white",
-                    fontFamily: "Poppins, sans-serif",
-                  }}
-                >
-                  Conheça Nossos Produtos
-                </Button>
-              </motion.div>
-            </motion.div>
-          </Box>
-        </Box>
-      </HeroBanner>
+      <HeroSection />
       {/* Products Section */}
       <Box sx={{ width: "100%" }}>
         <Products />
@@ -308,7 +160,7 @@ const Home = () => {
                       fontWeight: 700,
                       mb: 2,
                       mt: 1,
-                      fontFamily: "Poppins, sans-serif",
+                      fontFamily: FONT_DISPLAY,
                     }}
                   >
                     Qualidade e confiança, é na Telas do Sul
@@ -346,7 +198,7 @@ const Home = () => {
                     },
                     transition: "all 0.3s ease-in-out",
                     color: "white",
-                    fontFamily: "Poppins, sans-serif",
+                    fontFamily: FONT_DISPLAY,
                   }}
                 >
                   Conheça Nossos Produtos

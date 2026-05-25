@@ -36,6 +36,7 @@ import Contact from "./pages/Contact";
 import { NavProvider } from "./contexts/navContext";
 import { ProductProvider } from "./contexts/productContext";
 import { contactInfo, openWhatsappWithConversion } from "./utils";
+import { FONT_BODY, FONT_DISPLAY } from "./theme/typography";
 
 // Configuração do cliente de consulta
 const queryClient = new QueryClient();
@@ -53,29 +54,56 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: "Montserrat",
+    fontFamily: FONT_BODY,
     h1: {
-      fontWeight: 700,
+      fontFamily: FONT_DISPLAY,
+      fontWeight: 800,
     },
     h2: {
+      fontFamily: FONT_DISPLAY,
       fontWeight: 700,
     },
     h3: {
+      fontFamily: FONT_DISPLAY,
       fontWeight: 600,
     },
     h4: {
+      fontFamily: FONT_DISPLAY,
       fontWeight: 600,
+    },
+    button: {
+      fontFamily: FONT_DISPLAY,
     },
   },
   components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          fontFamily: FONT_BODY,
+        },
+      },
+    },
+    MuiTypography: {
+      styleOverrides: {
+        root: {
+          fontFamily: FONT_BODY,
+        },
+      },
+    },
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 0,
+          borderRadius: 8,
           textTransform: "none",
-          color: "black",
           fontWeight: 600,
-          fontFamily: "Montserrat, sans-serif",
+          fontFamily: FONT_DISPLAY,
+        },
+      },
+    },
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          fontFamily: FONT_BODY,
         },
       },
     },

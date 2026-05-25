@@ -33,6 +33,7 @@ import { set } from "date-fns";
 import CategoryNavbar from "../ui/CategoryNavbar";
 import { useNav } from "@/contexts/navContext";
 import { useProduct } from "@/contexts/productContext";
+import { FONT_BODY } from "@/theme/typography";
 
 const StyledAppBar = styled(AppBar)(
   ({ isTransparent }: { isTransparent: boolean }) => ({
@@ -306,7 +307,7 @@ const Navbar = () => {
                 ].map(({ label, to }) => (
                   <NavButton
                     sx={{
-                      fontFamily: "Poppins",
+                      fontFamily: FONT_BODY,
                       fontSize: "14px",
                       fontWeight: "500",
                       color: "gray",

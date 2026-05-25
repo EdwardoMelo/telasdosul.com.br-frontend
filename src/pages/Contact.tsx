@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Box, Button, Container, Typography, TextField, Paper, Alert, Snackbar, CircularProgress } from '@mui/material'
 import { styled } from '@mui/system'
 import { sendContactForm } from '@/utils'
+import { FONT_DISPLAY } from '@/theme/typography'
 import hero from '../assets/hero.jpg'
 
 const HeroBanner = styled(Box)({
@@ -139,7 +140,7 @@ const showFeedBack = (msg: string, color: 'success' | 'error' | 'info') => {
                 },
                 transition: "all 0.3s ease-in-out",
                 color: "white",
-                fontFamily: "Poppins, sans-serif",
+                fontFamily: FONT_DISPLAY,
               }}
             >
               {loading ? (
