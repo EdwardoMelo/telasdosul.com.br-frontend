@@ -2,6 +2,17 @@ import { add } from "date-fns";
 import { api } from "./api";
 
 
+/** Ex.: "TELAS SOLDADAS" → "Telas Soldadas" */
+export function formatCategoryLabel(label: string): string {
+  return label
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 export const contactInfo = {
   phone: "+55 51 99596-0844",
   email: "telasdosul@hotmail.com",

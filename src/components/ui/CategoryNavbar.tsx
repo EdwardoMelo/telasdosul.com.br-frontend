@@ -4,6 +4,7 @@ import { Categoria } from "@/models/Categoria";
 
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { formatCategoryLabel } from "@/utils";
 
 
 interface props{ 
@@ -97,10 +98,10 @@ const CategoryNavbar = ({visible} : props) => {
               fontSize: "normal",
               fonWeight: 'bold',
               fontFamily: "Poppins",
-              textTransform: 'capitalize'
+              textTransform: "none",
             }}
           >
-            {categoria.nome.toLowerCase()}
+            {formatCategoryLabel(categoria.nome)}
           </Typography>
         </Box>
       ))}

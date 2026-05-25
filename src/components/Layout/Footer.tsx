@@ -4,7 +4,7 @@ import { Box, Container, Grid, Typography, Link, IconButton } from '@mui/materia
 import {  WhatsApp, Email, Phone, LocationOn, ContactPhone } from '@mui/icons-material';
 import { styled } from '@mui/system';
 import { Categoria } from '@/models/Categoria';
-import { contactInfo, openWhatsappWithConversion } from '@/utils';
+import { contactInfo, formatCategoryLabel, openWhatsappWithConversion } from '@/utils';
 
 const FooterContainer = styled(Box)({
   borderTop: '1px solid white',
@@ -109,7 +109,7 @@ const Footer = () => {
                 key={categoria.id}
                 href={`/produtos?categoria=${categoria.id}`}
               >
-                {categoria.nome}
+                {formatCategoryLabel(categoria.nome)}
               </FooterLink>
             ))}
           </Grid>
