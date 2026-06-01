@@ -1,11 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  Container,
   Grid,
   Typography,
   TextField,
-  Button,
   Box,
   MenuItem,
   Select,
@@ -17,13 +15,55 @@ import {
   IconButton,
   Snackbar,
 } from "@mui/material";
-import { ArrowBack, Close } from "@mui/icons-material";
+import { Close } from "@mui/icons-material";
 import { Produto } from "../models/Produto";
 import { Categoria } from "../models/Categoria";
 import { Subcategoria, SubcategoriaDTO } from "../models/SubCategoria";
 import { VariacaoProduto, VariacaoProdutoDTO } from "@/models/VariacaoProduto";
 import VariacaoProdutoList from "@/components/ui/VariacaoProdutoList";
+import PriceLineList, {
+  LinhaPrecoFormRow,
+  linhaFormToInput,
+  linhasFromDto,
+} from "@/components/ui/PriceLineList";
 import FirebaseService from "@/services/firebaseService";
+import { TipoPrecoProduto } from "@/models/LinhaPreco";
+import { METRICAS_PRECO, UNIDADES_METRICA } from "@/utils";
+import { FONT_BODY } from "@/theme/typography";
+import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
+import ProductFormToolbar from "@/components/product/ProductFormToolbar";
+
+const FORM_MAX_WIDTH = 1280;
+
+const labelProps = {
+  sx: { fontWeight: 700, fontSize: 13, color: "text.primary" },
+};
+
+const compactField = {
+  size: "small" as const,
+  InputLabelProps: labelProps,
+  sx: {
+    "& .MuiInputBase-input": { fontSize: 14, py: 0.75 },
+    "& .MuiInputBase-root": { fontSize: 14 },
+  },
+};
+
+const compactSelect = {
+  size: "small" as const,
+  sx: {
+    fontSize: 14,
+    "& .MuiSelect-select": { py: 0.75 },
+  },
+};
+
+const descriptionFieldSx = {
+  "& .MuiInputBase-input": {
+    fontSize: 13,
+    lineHeight: 1.5,
+    py: 0.5,
+  },
+  "& .MuiInputBase-root": { fontSize: 13, alignItems: "flex-start" },
+};
 
 const ProductForm = () => {
   const navigate = useNavigate();
@@ -34,14 +74,19 @@ const ProductForm = () => {
     nome: "",
     descricao: "",
     preco: "",
+    tipo_preco: "FIXO" as TipoPrecoProduto,
+    metrica: "altura",
+    unidade_metrica: "m",
     marca: "",
     imagem: "",
     estoque: "",
     categoria_id: "",
     subcategoria_id: "",
   });
+  const [linhasPreco, setLinhasPreco] = useState<LinhaPrecoFormRow[]>([]);
   
   const [loading, setLoading] = useState<boolean>(false);
+  const [initialLoading, setInitialLoading] = useState<boolean>(!!id);
   const [error, setError] = useState<string | null>(null);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [subcategorias, setSubcategorias] = useState<SubcategoriaDTO[]>([]);
@@ -160,44 +205,84 @@ const ProductForm = () => {
     }
   };
 
+  const validatePricing = (): void => {
+    if (formData.tipo_preco === "POR_METRICA") {
+      if (linhasPreco.length === 0) {
+        throw new Error("Adicione ao menos uma linha de preço por métrica.");
+      }
+      linhasPreco.forEach((linha, i) => {
+        if (linha.valor === "" || linha.preco === "") {
+          throw new Error(`Preencha valor e preço na linha ${i + 1}.`);
+        }
+        if (Number(linha.valor) < 0 || Number(linha.preco) < 0) {
+          throw new Error(`Valores inválidos na linha ${i + 1}.`);
+        }
+      });
+    } else if (!formData.preco || Number(formData.preco) < 0) {
+      throw new Error("Informe um preço fixo válido.");
+    }
+  };
+
+  const buildProdutoFromForm = (productId = 0): Produto => {
+    const isPorMetrica = formData.tipo_preco === "POR_METRICA";
+    return new Produto({
+      id: productId,
+      nome: formData.nome,
+      descricao: formData.descricao,
+      preco: isPorMetrica ? null : parseFloat(formData.preco),
+      tipo_preco: formData.tipo_preco,
+      metrica: isPorMetrica ? formData.metrica : null,
+      unidade_metrica: isPorMetrica ? formData.unidade_metrica : null,
+      marca: formData.marca,
+      imagem: formData.imagem,
+      estoque: parseInt(formData.estoque, 10) || 0,
+      categoria_id: parseInt(formData.categoria_id, 10),
+      subcategoria_id: formData.subcategoria_id
+        ? parseInt(formData.subcategoria_id, 10)
+        : undefined,
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     try {
-      const produto = new Produto({
-        id: 0,
-        nome: formData.nome,
-        descricao: formData.descricao,
-        preco: parseFloat(formData.preco),
-        marca: formData.marca,
-        imagem: formData.imagem,
-        estoque: parseInt(formData.estoque),
-        categoria_id: parseInt(formData.categoria_id),
-        subcategoria_id: parseInt(formData.subcategoria_id),
-      });
-      if(editng){ 
-        produto.id = parseInt(id);
-        const updatedProduto = await produto.update();
-        navigate(`/produtos/${updatedProduto.id}`);
+      validatePricing();
+      const linhasInput = linhasPreco.map(linhaFormToInput);
+
+      if (editng && id) {
+        const produto = buildProdutoFromForm(parseInt(id, 10));
+        await produto.update();
+        if (formData.tipo_preco === "POR_METRICA") {
+          await produto.saveLinhasPreco(linhasInput);
+        } else {
+          await produto.saveLinhasPreco([]);
+        }
+        navigate(`/produtos/${produto.id}`);
         return;
       }
-      const createdProduto = await produto.create();
-      if(variacoes.length) {
-       await VariacaoProduto.createManyByProductId(
-        createdProduto.id,
-        variacoes
-       );
+
+      const produto = buildProdutoFromForm();
+      await produto.create();
+      if (formData.tipo_preco === "POR_METRICA" && linhasInput.length > 0) {
+        await produto.saveLinhasPreco(linhasInput);
       }
-      navigate(`/produtos/${createdProduto.id}`);
-    } catch (err) {
-      console.error("Erro ao criar produto:", err);
-      setError(
-        "Erro ao criar o produto. Verifique os dados e tente novamente."
-      );
+      if (variacoes.length) {
+        await VariacaoProduto.createManyByProductId(produto.id, variacoes);
+      }
+      navigate(`/produtos/${produto.id}`);
+    } catch (err: unknown) {
+      console.error("Erro ao salvar produto:", err);
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Erro ao salvar o produto. Verifique os dados e tente novamente.";
+      setError(msg);
+      showFeedBack(msg, "error");
     } finally {
       setLoading(false);
-    } 
+    }
   };
 
   const handleGoBack = () => {
@@ -221,21 +306,35 @@ const ProductForm = () => {
     useEffect(() => {
       const fetchProduto = async () => {
         try {
-          setLoading(true);
+          if (id) setInitialLoading(true);
           if (id) {
             setEditing(true);
             const produtoData = await Produto.getById(parseInt(id));
             setFormData({
               nome: produtoData.nome,
-              descricao: produtoData.descricao,
-              preco: String(produtoData.preco),
-              marca: produtoData.marca,
-              imagem: produtoData.imagem,
+              descricao: produtoData.descricao ?? "",
+              preco:
+                produtoData.preco != null ? String(produtoData.preco) : "",
+              tipo_preco: produtoData.tipo_preco ?? "FIXO",
+              metrica: produtoData.metrica ?? "altura",
+              unidade_metrica: produtoData.unidade_metrica ?? "m",
+              marca: produtoData.marca ?? "",
+              imagem: produtoData.imagem ?? "",
               estoque: String(produtoData.estoque),
               categoria_id: String(produtoData.categoria_id),
-              subcategoria_id: String(produtoData.subcategoria_id),
+              subcategoria_id: produtoData.subcategoria_id
+                ? String(produtoData.subcategoria_id)
+                : "",
             });
-            setVariacoes(produtoData.variacoes);
+            setLinhasPreco(
+              produtoData.linhas_preco?.length
+                ? linhasFromDto(produtoData.linhas_preco)
+                : []
+            );
+            setVariacoes(produtoData.variacoes ?? []);
+            if (produtoData.imagem) {
+              setImagePreview(produtoData.imagem);
+            }
             const categoriasData = await Categoria.getAll();
 
             const initialCategoria = categoriasData.find(
@@ -252,167 +351,284 @@ const ProductForm = () => {
             "Erro ao carregar as informações do produto. Por favor, tente novamente."
           );
         } finally {
-          setLoading(false);
+          setInitialLoading(false);
         }
       };
   
       fetchProduto();
     }, [id]);
 
-  if (loading) {
+  if (initialLoading) {
     return (
-      <Container
+      <Box
         sx={{
-          py: 8,
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          minHeight: "60vh",
+          minHeight: "40vh",
+          mt: 2,
         }}
       >
-        <CircularProgress sx={{ color: "primary.main" }} />
-      </Container>
+        <CircularProgress size={32} sx={{ color: "primary.main" }} />
+      </Box>
     );
   }
 
+  const pageTitle = id ? "Editar produto" : "Cadastrar produto";
+
   return (
-    <Container sx={{ py: 6, minHeight: "80vh", marginTop: "10vh" }}>
-      <Button
-        variant="text"
-        startIcon={<ArrowBack />}
-        onClick={handleGoBack}
-        sx={{ mb: 3 }}
-      >
-        Voltar para produtos
-      </Button>
-
-      {!id && (
-        <Typography
-          variant="h4"
-          component="h1"
-          gutterBottom
-          sx={{ fontWeight: "bold" }}
-        >
-          Cadastrar Novo Produto
-        </Typography>
-      )}
-      {id && (
-        <Typography
-          variant="h4"
-          component="h1"
-          gutterBottom
-          sx={{ fontWeight: "bold" }}
-        >
-          Editar Produto
-        </Typography>
-      )}
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
+    <>
+      <ProductFormToolbar
+        title={pageTitle}
+        onBack={handleGoBack}
+        submitLabel={id ? "Salvar" : "Cadastrar"}
+        saving={loading}
+      />
 
       <Box
-        component="form"
-        onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}
-        onSubmit={handleSubmit}
-        noValidate
-        sx={{ mt: 2 }}
+        sx={{
+          maxWidth: FORM_MAX_WIDTH,
+          mx: "auto",
+          px: { xs: 2, sm: 3 },
+          pt: 1.5,
+          pb: 4,
+        }}
       >
-        <Grid container spacing={3}>
+        {error && (
+          <Alert severity="error" sx={{ mb: 1.5, py: 0.5 }}>
+            {error}
+          </Alert>
+        )}
+
+        <Box
+          component="form"
+          id="product-form"
+          onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}
+          onSubmit={handleSubmit}
+          noValidate
+          sx={{
+            bgcolor: "background.paper",
+            borderRadius: 2,
+            border: 1,
+            borderColor: "divider",
+            p: { xs: 1.5, sm: 2 },
+            boxShadow: "0 1px 3px rgba(0, 32, 74, 0.04)",
+          }}
+        >
+        <Grid container spacing={1.5}>
+          {/* Nome — linha compacta */}
           <Grid item xs={12}>
             <TextField
               fullWidth
-              label="Nome do Produto"
+              label="Nome do produto"
               name="nome"
               value={formData.nome}
               onChange={handleChange}
               required
               variant="outlined"
+              {...compactField}
             />
           </Grid>
-          <Grid item xs={12}>
-            <TextField
+
+          {/* Duas colunas: descrição | demais campos */}
+          <Grid item xs={12} md={6}>
+            <AutoResizeTextarea
               fullWidth
               label="Descrição"
               name="descricao"
               value={formData.descricao}
               onChange={handleChange}
-              multiline
-              rows={4}
               variant="outlined"
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Preço"
-              name="preco"
-              value={formData.preco}
-              onChange={handleChange}
-              type="number"
-              InputProps={{ inputProps: { step: "0.01" } }}
-              variant="outlined"
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Marca"
-              name="marca"
-              value={formData.marca}
-              onChange={handleChange}
-              variant="outlined"
+              minRows={5}
+              {...compactField}
+              sx={{
+                ...compactField.sx,
+                ...descriptionFieldSx,
+                "& .MuiInputBase-root": { height: "auto" },
+              }}
             />
           </Grid>
 
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Estoque"
-              name="estoque"
-              value={formData.estoque}
-              onChange={handleChange}
-              type="number"
-              variant="outlined"
-            />
+          <Grid item xs={12} md={6}>
+            <Grid container spacing={1.5}>
+              <Grid item xs={12}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontFamily: FONT_BODY,
+                    fontWeight: 700,
+                    fontSize: 12,
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase",
+                    color: "text.secondary",
+                    display: "block",
+                    mb: 0.25,
+                  }}
+                >
+                  Configuração de preço
+                </Typography>
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth variant="outlined" {...compactSelect}>
+                  <InputLabel {...labelProps}>Tipo de preço</InputLabel>
+                  <Select
+                    name="tipo_preco"
+                    value={formData.tipo_preco}
+                    label="Tipo de preço"
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        tipo_preco: e.target.value as TipoPrecoProduto,
+                      }))
+                    }
+                  >
+                    <MenuItem value="FIXO" sx={{ fontSize: 14 }}>
+                      Preço fixo
+                    </MenuItem>
+                    <MenuItem value="POR_METRICA" sx={{ fontSize: 14 }}>
+                      Preço por métrica
+                    </MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              {formData.tipo_preco === "FIXO" ? (
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Preço (R$)"
+                    name="preco"
+                    value={formData.preco}
+                    onChange={handleChange}
+                    type="number"
+                    required
+                    variant="outlined"
+                    InputProps={{ inputProps: { step: "0.01", min: 0 } }}
+                    {...compactField}
+                  />
+                </Grid>
+              ) : (
+                <>
+                  <Grid item xs={6}>
+                    <FormControl fullWidth variant="outlined" {...compactSelect}>
+                      <InputLabel {...labelProps}>Métrica</InputLabel>
+                      <Select
+                        value={formData.metrica}
+                        label="Métrica"
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            metrica: e.target.value,
+                          }))
+                        }
+                      >
+                        {METRICAS_PRECO.map((m) => (
+                          <MenuItem key={m.value} value={m.value} sx={{ fontSize: 14 }}>
+                            {m.label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <FormControl fullWidth variant="outlined" {...compactSelect}>
+                      <InputLabel {...labelProps}>Unidade</InputLabel>
+                      <Select
+                        value={formData.unidade_metrica}
+                        label="Unidade"
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            unidade_metrica: e.target.value,
+                          }))
+                        }
+                      >
+                        {UNIDADES_METRICA.map((u) => (
+                          <MenuItem key={u} value={u} sx={{ fontSize: 14 }}>
+                            {u}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <PriceLineList
+                      linhas={linhasPreco}
+                      onChange={setLinhasPreco}
+                      unidadeMetrica={formData.unidade_metrica}
+                      metricaLabel={
+                        METRICAS_PRECO.find((m) => m.value === formData.metrica)
+                          ?.label ?? formData.metrica
+                      }
+                    />
+                  </Grid>
+                </>
+              )}
+
+              <Grid item xs={6}>
+                <TextField
+                  fullWidth
+                  label="Marca"
+                  name="marca"
+                  value={formData.marca}
+                  onChange={handleChange}
+                  variant="outlined"
+                  {...compactField}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  fullWidth
+                  label="Estoque"
+                  name="estoque"
+                  value={formData.estoque}
+                  onChange={handleChange}
+                  type="number"
+                  variant="outlined"
+                  {...compactField}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <FormControl
+                  fullWidth
+                  variant="outlined"
+                  required
+                  {...compactSelect}
+                >
+                  <InputLabel {...labelProps}>Categoria</InputLabel>
+                  <Select
+                    value={formData.categoria_id}
+                    label="Categoria"
+                    onChange={(e) => handleChangeCategoria(e)}
+                  >
+                    {categorias.map((categoria) => (
+                      <MenuItem key={categoria.id} value={categoria.id} sx={{ fontSize: 14 }}>
+                        {categoria.nome}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={6}>
+                <FormControl fullWidth variant="outlined" {...compactSelect}>
+                  <InputLabel {...labelProps}>Subcategoria</InputLabel>
+                  <Select
+                    value={formData.subcategoria_id}
+                    label="Subcategoria"
+                    onChange={handleChangeSubcategoria}
+                  >
+                    {subcategorias.map((subcategoria) => (
+                      <MenuItem key={subcategoria.id} value={subcategoria.id} sx={{ fontSize: 14 }}>
+                        {subcategoria.nome}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
           </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth variant="outlined" required>
-              <InputLabel>Categoria</InputLabel>
-              <Select
-                name="categoria_id"
-                value={formData.categoria_id}
-                //onChange
-                onChange={(e) => handleChangeCategoria(e)}
-                label="Categoria"
-              >
-                {categorias.map((categoria) => (
-                  <MenuItem key={categoria.id} value={categoria.id}>
-                    {categoria.nome}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth variant="outlined">
-              <InputLabel>Subcategoria</InputLabel>
-              <Select
-                name="subcategoria_id"
-                value={formData.subcategoria_id}
-                onChange={handleChangeSubcategoria}
-                label="Subcategoria"
-              >
-                {subcategorias.map((subcategoria) => (
-                  <MenuItem key={subcategoria.id} value={subcategoria.id}>
-                    {subcategoria.nome}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
+
           <Grid item xs={12}>
             <VariacaoProdutoList
               variacoes={variacoes}
@@ -420,18 +636,33 @@ const ProductForm = () => {
               produto_id={Number(id)}
             />
           </Grid>
-          <Grid item xs={12}>
+
+          <Grid item xs={12} md={6}>
+            <Typography
+              variant="caption"
+              sx={{
+                fontFamily: FONT_BODY,
+                fontWeight: 700,
+                fontSize: 12,
+                color: "text.secondary",
+                display: "block",
+                mb: 0.5,
+              }}
+            >
+              Imagem do produto
+            </Typography>
             <Box
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               sx={{
-                border: "2px dashed primary.main",
-                borderRadius: 2,
-                p: 2,
+                border: "1px dashed",
+                borderColor: "divider",
+                borderRadius: 1.5,
+                p: 1.5,
                 textAlign: "center",
                 cursor: "pointer",
-                bgcolor: "#fff8f0",
-                minHeight: 180,
+                bgcolor: "#fafbfc",
+                minHeight: 100,
                 position: "relative",
                 transition: "border-color 0.2s",
                 "&:hover": { borderColor: "primary.main" },
@@ -480,52 +711,22 @@ const ProductForm = () => {
                       </IconButton>
                     </Box>
                   ) : (
-                    <Typography color="text.secondary" sx={{ mt: 5 }}>
-                      Arraste uma imagem aqui ou clique para selecionar
+                    <Typography
+                      color="text.secondary"
+                      sx={{ fontSize: 13, py: 2 }}
+                    >
+                      Arraste ou clique para selecionar
                     </Typography>
                   )}
                 </Box>
               )}
             </Box>
           </Grid>
-          <Grid item xs={12}>
-            {!id && (
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={loading}
-                sx={{
-                  bgcolor: "primary.main",
-                  "&:hover": { bgcolor: "primary.main" },
-                  color: "white",
-                  textTransform: "uppercase",
-                  py: 1.5,
-                }}
-              >
-                Cadastrar Produto
-              </Button>
-            )}
 
-            {id && (
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={loading}
-                sx={{
-                  bgcolor: "primary.main",
-                  "&:hover": { bgcolor: "primary.main" },
-                  color: "white",
-                  textTransform: "uppercase",
-                  py: 1.5,
-                }}
-              >
-                Salvar
-              </Button>
-            )}
-          </Grid>
         </Grid>
+        </Box>
       </Box>
-       <Snackbar
+      <Snackbar
               open={snackbarOpen}
               autoHideDuration={4000}
               onClose={handleCloseSnackbar}
@@ -540,7 +741,7 @@ const ProductForm = () => {
                 {message}
               </Alert>
             </Snackbar>
-    </Container>
+    </>
   );
 };
 

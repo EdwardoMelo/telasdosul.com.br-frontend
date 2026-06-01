@@ -3,12 +3,22 @@ import { api } from "../api";
 import { Categoria, CategoriaDTO } from "./Categoria";
 import { Subcategoria, SubcategoriaDTO } from "./SubCategoria";
 import { VariacaoProdutoDTO } from "./VariacaoProduto";
+import {
+  LinhaPreco,
+  LinhaPrecoDTO,
+  LinhaPrecoInput,
+  PrecoExibicao,
+  TipoPrecoProduto,
+} from "./LinhaPreco";
 
 export interface ProdutoDTO {
   id: number;
   nome: string;
   descricao?: string;
-  preco: number;
+  preco?: number | null;
+  tipo_preco?: TipoPrecoProduto;
+  metrica?: string | null;
+  unidade_metrica?: string | null;
   marca?: string;
   imagem?: string;
   estoque: number;
@@ -19,13 +29,32 @@ export interface ProdutoDTO {
   categoria?: CategoriaDTO;
   subcategoria?: SubcategoriaDTO;
   variacoes?: VariacaoProdutoDTO[];
+  linhas_preco?: LinhaPrecoDTO[];
+  preco_exibicao?: PrecoExibicao | null;
+}
+
+export interface ProdutoPayload {
+  nome: string;
+  descricao?: string;
+  preco?: number | null;
+  tipo_preco?: TipoPrecoProduto;
+  metrica?: string | null;
+  unidade_metrica?: string | null;
+  marca?: string;
+  imagem?: string;
+  estoque: number;
+  categoria_id: number;
+  subcategoria_id?: number | null;
 }
 
 export class Produto {
   id: number;
   nome: string;
   descricao?: string;
-  preco: number;
+  preco?: number | null;
+  tipo_preco: TipoPrecoProduto;
+  metrica?: string | null;
+  unidade_metrica?: string | null;
   marca?: string;
   imagem?: string;
   estoque: number;
@@ -37,12 +66,17 @@ export class Produto {
   categoria?: Categoria;
   subcategoria?: Subcategoria;
   variacoes?: VariacaoProdutoDTO[];
+  linhas_preco?: LinhaPrecoDTO[];
+  preco_exibicao?: PrecoExibicao | null;
 
   constructor(data: ProdutoDTO) {
     this.id = data.id;
     this.nome = data.nome;
     this.descricao = data.descricao;
-    this.preco = data.preco;
+    this.preco = data.preco != null ? Number(data.preco) : null;
+    this.tipo_preco = data.tipo_preco ?? "FIXO";
+    this.metrica = data.metrica ?? null;
+    this.unidade_metrica = data.unidade_metrica ?? "m";
     this.marca = data.marca;
     this.imagem = data.imagem;
     this.estoque = data.estoque;
@@ -55,6 +89,16 @@ export class Produto {
       ? new Subcategoria(data.subcategoria)
       : undefined;
     this.variacoes = data.variacoes;
+    this.linhas_preco = data.linhas_preco?.map((linha) => ({
+      ...linha,
+      valor: Number(linha.valor),
+      preco: Number(linha.preco),
+    }));
+    this.preco_exibicao = data.preco_exibicao ?? null;
+  }
+
+  get isPrecoPorMetrica(): boolean {
+    return this.tipo_preco === "POR_METRICA";
   }
 
   static async getAll(): Promise<Produto[]> {
@@ -75,39 +119,40 @@ export class Produto {
   }
 
   async create(): Promise<Produto> {
-    const response = await api.post<ProdutoDTO>("/produtos", {
-      nome: this.nome,
-      descricao: this.descricao,
-      preco: this.preco,
-      marca: this.marca,
-      imagem: this.imagem,
-      estoque: this.estoque,
-      categoria_id: this.categoria_id,
-    });
-    this.id = response.data.id;
-    this.created_at = response.data.created_at
-      ? new Date(response.data.created_at)
-      : new Date();
-    this.updated_at = response.data.updated_at
-      ? new Date(response.data.updated_at)
-      : new Date();
+    const response = await api.post<ProdutoDTO>("/produtos", this.toPayload());
+    const created = new Produto(response.data);
+    Object.assign(this, created);
     return this;
   }
 
   async update(): Promise<Produto> {
-    const response = await api.put<ProdutoDTO>(`/produtos/${this.id}`, {
+    const response = await api.put<ProdutoDTO>(
+      `/produtos/${this.id}`,
+      this.toPayload()
+    );
+    const updated = new Produto(response.data);
+    Object.assign(this, updated);
+    return this;
+  }
+
+  async saveLinhasPreco(linhas: LinhaPrecoInput[]): Promise<void> {
+    await LinhaPreco.replaceAllByProductId(this.id, linhas);
+  }
+
+  private toPayload(): ProdutoPayload {
+    return {
       nome: this.nome,
       descricao: this.descricao,
-      preco: this.preco,
+      preco: this.isPrecoPorMetrica ? null : this.preco ?? null,
+      tipo_preco: this.tipo_preco,
+      metrica: this.isPrecoPorMetrica ? this.metrica : null,
+      unidade_metrica: this.isPrecoPorMetrica ? this.unidade_metrica : null,
       marca: this.marca,
       imagem: this.imagem,
       estoque: this.estoque,
       categoria_id: this.categoria_id,
-    });
-    this.updated_at = response.data.updated_at
-      ? new Date(response.data.updated_at)
-      : new Date();
-    return this;
+      subcategoria_id: this.subcategoria_id ?? null,
+    };
   }
 
   async delete(): Promise<void> {

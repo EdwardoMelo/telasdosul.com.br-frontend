@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
-  Container,
+  Box,
   Grid,
   Typography,
-  Paper,
   Button,
-  Box,
   Chip,
   Divider,
   CircularProgress,
@@ -14,34 +12,65 @@ import {
   Breadcrumbs,
   Link,
   Stack,
-  List,
   Tooltip,
   IconButton,
 } from "@mui/material";
-import { ShoppingCart, ArrowBack, Close } from "@mui/icons-material";
+import {
+  ArrowBack,
+  Close,
+  Edit as EditIcon,
+  WhatsApp,
+} from "@mui/icons-material";
 import { Produto } from "../models/Produto";
-import { blue } from "@mui/material/colors";
 import { useUser } from "@/contexts/userContext";
-import EditIcon from "@mui/icons-material/Edit";
-import { contactInfo, openWhatsappWithConversionSolicitar } from "@/utils";
+import { LinhaPrecoDTO } from "@/models/LinhaPreco";
+import {
+  contactInfo,
+  formatCategoryLabel,
+  formatProductPrice,
+  openWhatsappWithConversionSolicitar,
+} from "@/utils";
+import { FONT_BODY, FONT_DISPLAY } from "@/theme/typography";
+import ProductDescription from "@/components/product/ProductDescription";
+import ProductPriceDisplay from "@/components/product/ProductPriceDisplay";
+
+const LAYOUT = {
+  containerMaxWidth: 1200,
+} as const;
+
+const PageContainer = ({ children }: { children: React.ReactNode }) => (
+  <Box
+    sx={{
+      width: "100%",
+      maxWidth: LAYOUT.containerMaxWidth,
+      mx: "auto",
+      px: { xs: 2, sm: 3 },
+      py: { xs: 2, md: 3 },
+    }}
+  >
+    {children}
+  </Box>
+);
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [produto, setProduto] = useState<Produto | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [quantidade, setQuantidade] = useState<number>(1);
-  const [productImageOpen, setProductImageOpen] = useState<boolean>(false);
+  const [productImageOpen, setProductImageOpen] = useState(false);
+  const [linhaSelecionada, setLinhaSelecionada] = useState<LinhaPrecoDTO | null>(
+    null
+  );
 
-  const {user} = useUser();
+  const { user } = useUser();
 
   useEffect(() => {
     const fetchProduto = async () => {
       try {
         setLoading(true);
         if (id) {
-          const produtoData = await Produto.getById(parseInt(id));
+          const produtoData = await Produto.getById(parseInt(id, 10));
           setProduto(produtoData);
         }
       } catch (err) {
@@ -58,322 +87,432 @@ const ProductDetail = () => {
   }, [id]);
 
   const handleGoBack = () => {
-    navigate("/produtos");
+    if (window.history.length > 2) {
+      navigate(-1);
+    } else {
+      navigate("/produtos");
+    }
   };
 
   if (loading) {
     return (
-      <Container
-        sx={{
-          py: 8,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: "60vh",
-        }}
-      >
-        <CircularProgress sx={{ color: "primary.main" }} />
-      </Container>
+      <PageContainer>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: "50vh",
+          }}
+        >
+          <CircularProgress size={36} sx={{ color: "primary.main" }} />
+        </Box>
+      </PageContainer>
     );
   }
 
   if (error || !produto) {
     return (
-      <Container sx={{ py: 8, minHeight: "60vh", marginTop: "20rem" }}>
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error || "Produto não encontrado"}
-        </Alert>
-        <Button
-          variant="outlined"
-          startIcon={<ArrowBack />}
-          onClick={handleGoBack}
-          sx={{ mt: 2 }}
-        >
-          Voltar
-        </Button>
-      </Container>
+      <PageContainer>
+        <Stack spacing={2} sx={{ minHeight: "40vh", pt: 4 }}>
+          <IconButton
+            onClick={handleGoBack}
+            aria-label="Voltar"
+            sx={backButtonSx}
+          >
+            <ArrowBack sx={{ fontSize: 20 }} />
+          </IconButton>
+          <Alert severity="error">{error || "Produto não encontrado"}</Alert>
+        </Stack>
+      </PageContainer>
     );
   }
 
+  const displayName = formatCategoryLabel(produto.nome);
+  const categoriaNome = produto.categoria?.nome
+    ? formatCategoryLabel(produto.categoria.nome)
+    : null;
+  const buildWhatsappMessage = () => {
+    let detalhePreco = "";
+    if (produto.isPrecoPorMetrica && linhaSelecionada) {
+      const ref = formatProductPrice(linhaSelecionada.preco);
+      const opcao =
+        linhaSelecionada.rotulo_exibicao ?? `${linhaSelecionada.valor}`;
+      detalhePreco = ref ? ` — ${opcao}: ${ref}` : ` — ${opcao}`;
+    } else {
+      const ref = formatProductPrice(Number(produto.preco ?? 0));
+      if (ref) detalhePreco = ` — ref. ${ref}`;
+    }
+    return encodeURIComponent(
+      `Olá! Vim pelo site e gostaria de um orçamento para ${displayName} (código ${produto.id})${detalhePreco}.`
+    );
+  };
+
   return (
-    <Box
-      sx={{
-        minHeight: "80vh",
-        marginBottom: "2rem",
-        position: "relative",
-        width: "100%",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "start",
-        gap: 1,
-        alignItems: "start",
-        paddingX: {
-          xs: 2,
-          md: 12,
-          lg: 14,
-          xl: 16,
-        },
-        paddingY: 2,
-      }}
-    >
-      {user && user.hasPermission("editar_produto") && (
-        <Tooltip
-          title="Editar produto"
-          sx={{
-            position: "absolute",
-            top: 16,
-            right: 20,
-            bgcolor: "primary.main",
-            "&:hover": { bgcolor: "primary.main" },
-            color: "white",
-          }}
+    <Box component="article" sx={{ bgcolor: "background.default", pb: 6 }}>
+      <PageContainer>
+        {/* Topo: voltar + breadcrumb + editar */}
+        <Stack
+          direction="row"
+          alignItems="center"
+          spacing={1.5}
+          sx={{ mb: { xs: 2, md: 2.5 } }}
         >
-          <IconButton onClick={() => navigate(`/produtos/${produto.id}/edit`)}>
-            <EditIcon />
-          </IconButton>
-        </Tooltip>
-      )}
-
-      {/* Breadcrumbs */}
-      <Breadcrumbs separator="›" aria-label="breadcrumb" sx={{ mb: 0 }}>
-        <Link
-          color="inherit"
-          href="/"
-          onClick={(e) => {
-            e.preventDefault();
-            navigate("/");
-          }}
-          underline="hover"
-        >
-          Home
-        </Link>
-        <Link
-          color="inherit"
-          href="/produtos"
-          onClick={(e) => {
-            e.preventDefault();
-            navigate("/produtos");
-          }}
-          underline="hover"
-        >
-          Produtos
-        </Link>
-
-        <Typography color="text.primary">{produto.nome}</Typography>
-      </Breadcrumbs>
-
-      <Grid container spacing={1}>
-        {/* Imagem do Produto */}
-        <Grid item xs={12} md={6}>
-          <Box
-            onClick={() => setProductImageOpen(true)}
-            sx={{
-              overflow: "hidden",
-              borderRadius: 2,
-              padding: 2,
-              display: "flex",
-              flexDirection: "column",
-              gap: 2,
-            }}
-          >
-            <Box
-              component="img"
-              src={produto.imagem || "/images/product-placeholder.jpg"}
-              alt={produto.nome}
-              sx={{
-                width: "100%",
-                objectFit: "cover",
-                maxHeight: { 
-                  md: '350px',
-                  lg: '400px',
-              
-                },
-                padding: 1,
-                cursor: "pointer",
-                "&:hover": {
-                  transform: "scale(1.1)",
-                  transition: "all 0.3s ease-in-out",
-                },
-                borderRadius: 2,
-                boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px;",
-              }}
-            />
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() =>
-                openWhatsappWithConversionSolicitar(
-                  `https://api.whatsapp.com/send?phone=${contactInfo.phone}&text=Oi, vim pelo site,gostaria de saber mais sobre o produto ${produto.nome}, código ${produto.id}!`
-                )
-              }
-              sx={{
-                bgcolor: "primary.main",
-                "&:hover": { bgcolor: "primary.main" },
-                color: "white",
-                textTransform: "uppercase",
-                mt: 2,
-                py: 1.5,
-              }}
+          <Tooltip title="Voltar">
+            <IconButton
+              onClick={handleGoBack}
+              aria-label="Voltar para produtos"
+              sx={backButtonSx}
             >
-              Solicitar Orçamento
-            </Button>
-          </Box>
-        </Grid>
+              <ArrowBack sx={{ fontSize: 20 }} />
+            </IconButton>
+          </Tooltip>
 
-        {/* Detalhes do Produto */}
-        <Grid
-          item
-          xs={12}
-          md={6}
-          sx={{ padding: 2, display: "flex", flexDirection: "column", gap: 2 }}
-        >
-          <Box
+          <Breadcrumbs
+            separator="›"
+            aria-label="Navegação"
             sx={{
-              mb: 2,
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "start",
-              height: "100%",
-              gap: 1,
+              flex: 1,
+              minWidth: 0,
+              "& .MuiBreadcrumbs-li": { fontSize: 12 },
+              "& .MuiTypography-root": { fontSize: 12 },
             }}
           >
-            {produto.nome && (
-              <Chip
-                label={produto.id}
-                size="small"
-                sx={{
-                  backgroundColor: "#222831",
-                  color: "white",
-                  mb: 1,
-                  width: 50,
-                  fontWeight: "bold",
-                }}
-              />
-            )}
-
+            <Link
+              color="inherit"
+              href="/"
+              onClick={(e) => {
+                e.preventDefault();
+                navigate("/");
+              }}
+              underline="hover"
+              sx={{ fontFamily: FONT_BODY, color: "text.secondary" }}
+            >
+              Home
+            </Link>
+            <Link
+              color="inherit"
+              href="/produtos"
+              onClick={(e) => {
+                e.preventDefault();
+                navigate("/produtos");
+              }}
+              underline="hover"
+              sx={{ fontFamily: FONT_BODY, color: "text.secondary" }}
+            >
+              Produtos
+            </Link>
             <Typography
-              fontSize="1.5rem"
-              gutterBottom
-              sx={{
-                fontWeight: "bold",
-                color: "#222831",
-                textTransform: "uppercase",
-              }}
+              color="text.primary"
+              noWrap
+              sx={{ fontFamily: FONT_BODY, fontSize: 12, maxWidth: 180 }}
             >
-              {produto.nome}
+              {displayName}
             </Typography>
-            {produto.marca && (
-              <Typography fontSize="small" color="text.secondary">
-                <strong>CODIGO DO PRODUTO:</strong> {produto.id}
-              </Typography>
-            )}
-            {produto.marca && (
-              <Typography fontSize="small" color="text.secondary">
-                <strong>MARCA:</strong> {produto.marca}
-              </Typography>
-            )}
+          </Breadcrumbs>
 
-            <Stack
-              padding={2}
-              sx={{
-                borderLeft: "4px solid " + blue[800],
-                boxShadow: "rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px",
-              }}
-            >
-              <Typography
-                fontSize="small"
-                sx={{ color: "gray", textTransform: "uppercase" }}
+          {user?.hasPermission("editar_produto") && (
+            <Tooltip title="Editar produto">
+              <IconButton
+                size="small"
+                onClick={() => navigate(`/produtos/${produto.id}/edit`)}
+                sx={{
+                  color: "primary.main",
+                  border: "1px solid",
+                  borderColor: "divider",
+                }}
               >
-                <strong>Variações</strong>{" "}
-              </Typography>
-              <List>
-                {produto.variacoes &&
-                  produto.variacoes.map((variacao) => (
-                    <Typography
-                      variant="subtitle1"
-                      color="text.secondary"
-                      key={variacao.id}
-                    >
-                      {variacao.nome}
-                    </Typography>
-                  ))}
-              </List>
-            </Stack>
-          </Box>
-          <Divider />
-          <Typography
-            variant="body1"
-            sx={{ fontWeight: "bold", whiteSpace: "pre-line" }}
-          >
-            {produto.descricao || "Sem descrição disponível para este produto."}
-          </Typography>
+                <EditIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Stack>
 
-          <Box sx={{ mt: 4, display: "flex", alignItems: "center" }}>
+        <Grid container spacing={{ xs: 3, md: 4 }} alignItems="flex-start">
+          {/* Coluna da imagem — prioridade visual */}
+          <Grid item xs={12} md={4} lg={4}>
             <Box
               sx={{
-                display: "flex",
-                alignItems: "center",
-                border: "1px solid #ddd",
-                borderRadius: 1,
-                mr: 3,
+                position: { md: "sticky" },
+                top: { md: 96 },
+                maxWidth: { xs: 360, sm: 320, md: "100%" },
+                mx: { xs: "auto", md: 0 },
               }}
-            ></Box>
-          </Box>
+            >
+              <Box
+                onClick={() => setProductImageOpen(true)}
+                sx={{
+                  position: "relative",
+                  width: "100%",
+                  aspectRatio: "4 / 3",
+                  maxHeight: { xs: 240, sm: 260, md: 280 },
+                  bgcolor: "#eef1f4",
+                  borderRadius: 1.5,
+                  border: "1px solid",
+                  borderColor: "divider",
+                  overflow: "hidden",
+                  cursor: "zoom-in",
+                  transition: "box-shadow 0.2s ease",
+                  "&:hover": {
+                    boxShadow: "0 4px 16px rgba(0, 32, 74, 0.1)",
+                  },
+                }}
+              >
+                <Box
+                  component="img"
+                  src={produto.imagem || "/images/product-placeholder.jpg"}
+                  alt={displayName}
+                  sx={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    objectPosition: "center",
+                    display: "block",
+                  }}
+                />
+              </Box>
+
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{
+                  display: "block",
+                  textAlign: "center",
+                  mt: 0.5,
+                  fontSize: 11,
+                  fontFamily: FONT_BODY,
+                }}
+              >
+                Clique na imagem para ampliar
+              </Typography>
+
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<WhatsApp sx={{ fontSize: 18 }} />}
+                fullWidth
+                onClick={() =>
+                  openWhatsappWithConversionSolicitar(
+                    `https://api.whatsapp.com/send?phone=${contactInfo.phone}&text=${buildWhatsappMessage()}`
+                  )
+                }
+                sx={{
+                  mt: 1.25,
+                  py: 0.75,
+                  fontFamily: FONT_DISPLAY,
+                  fontWeight: 600,
+                  fontSize: "0.8125rem",
+                  textTransform: "none",
+                  borderRadius: 1.5,
+                  bgcolor: "primary.main",
+                  boxShadow: "none",
+                  "&:hover": {
+                    bgcolor: "primary.dark",
+                    boxShadow: "0 3px 10px rgba(0, 32, 74, 0.18)",
+                  },
+                }}
+              >
+                Solicitar orçamento
+              </Button>
+            </Box>
+          </Grid>
+
+          {/* Coluna de informações */}
+          <Grid item xs={12} md={8} lg={8}>
+            <Stack spacing={2}>
+              <Box>
+                {categoriaNome && (
+                  <Chip
+                    label={categoriaNome}
+                    size="small"
+                    sx={{
+                      height: 22,
+                      fontSize: 11,
+                      fontFamily: FONT_BODY,
+                      bgcolor: "primary.main",
+                      color: "#fff",
+                      mb: 1,
+                    }}
+                  />
+                )}
+
+                <Typography
+                  component="h1"
+                  sx={{
+                    fontFamily: FONT_DISPLAY,
+                    fontWeight: 700,
+                    fontSize: {
+                      xs: "clamp(1.35rem, 4vw, 1.6rem)",
+                      md: "clamp(1.5rem, 2.5vw, 1.85rem)",
+                    },
+                    lineHeight: 1.25,
+                    letterSpacing: "-0.02em",
+                    color: "primary.main",
+                    textTransform: "none",
+                  }}
+                >
+                  {displayName}
+                </Typography>
+
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ fontFamily: FONT_BODY, mt: 0.5, display: "block" }}
+                >
+                  Código {produto.id}
+                  {produto.marca ? ` · ${formatCategoryLabel(produto.marca)}` : ""}
+                </Typography>
+
+                <Box sx={{ mt: 1.5 }}>
+                  <ProductPriceDisplay
+                    tipoPreco={produto.tipo_preco}
+                    preco={produto.preco}
+                    linhasPreco={produto.linhas_preco}
+                    metrica={produto.metrica}
+                    onLinhaChange={setLinhaSelecionada}
+                  />
+                </Box>
+              </Box>
+
+              {produto.variacoes && produto.variacoes.length > 0 && (
+                <Box
+                  sx={{
+                    py: 1.5,
+                    px: 2,
+                    borderRadius: 1.5,
+                    bgcolor: "grey.50",
+                    borderLeft: "3px solid",
+                    borderColor: "primary.main",
+                  }}
+                >
+                  <Typography
+                    variant="overline"
+                    sx={{
+                      fontFamily: FONT_DISPLAY,
+                      fontSize: 11,
+                      fontWeight: 600,
+                      letterSpacing: "0.08em",
+                      color: "text.secondary",
+                      display: "block",
+                      mb: 0.75,
+                    }}
+                  >
+                    Variações
+                  </Typography>
+                  <Stack spacing={0.5}>
+                    {produto.variacoes.map((variacao) => (
+                      <Typography
+                        key={variacao.id}
+                        variant="body2"
+                        sx={{
+                          fontFamily: FONT_BODY,
+                          color: "text.secondary",
+                          fontSize: 13,
+                        }}
+                      >
+                        {formatCategoryLabel(variacao.nome)}
+                      </Typography>
+                    ))}
+                  </Stack>
+                </Box>
+              )}
+
+              <Divider />
+
+              <ProductDescription
+                description={produto.descricao ?? ""}
+              />
+
+              {/* CTA secundário no mobile — após descrição */}
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<WhatsApp />}
+                onClick={() =>
+                  openWhatsappWithConversionSolicitar(
+                    `https://api.whatsapp.com/send?phone=${contactInfo.phone}&text=${buildWhatsappMessage()}`
+                  )
+                }
+                sx={{
+                  display: { xs: "inline-flex", md: "none" },
+                  alignSelf: "flex-start",
+                  fontFamily: FONT_DISPLAY,
+                  textTransform: "none",
+                  borderRadius: 2,
+                  borderColor: "primary.main",
+                  color: "primary.main",
+                }}
+              >
+                Solicitar orçamento
+              </Button>
+            </Stack>
+          </Grid>
         </Grid>
-      </Grid>
-      {/* Modal Imagem do produto */}
+      </PageContainer>
+
+      {/* Lightbox */}
       {productImageOpen && (
         <Box
           sx={{
             position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            bgcolor: "rgba(0,0,0,0.85)",
+            inset: 0,
+            bgcolor: "rgba(0, 20, 45, 0.92)",
             zIndex: 2000,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             cursor: "zoom-out",
+            p: 2,
           }}
           onClick={() => setProductImageOpen(false)}
         >
           <Box
             component="img"
             src={produto.imagem || "/images/product-placeholder.jpg"}
-            alt={produto.nome}
+            alt={displayName}
             sx={{
-              maxWidth: "95vw",
-              maxHeight: "95vh",
+              maxWidth: "min(95vw, 900px)",
+              maxHeight: "90vh",
               objectFit: "contain",
-              boxShadow: 24,
-              borderRadius: 2,
-              background: "#fff",
+              borderRadius: 1,
             }}
             onClick={(e) => e.stopPropagation()}
           />
           <IconButton
             onClick={() => setProductImageOpen(false)}
+            aria-label="Fechar"
             sx={{
               position: "fixed",
-              top: 24,
-              right: 32,
-              bgcolor: "white",
-              "&:hover": {
-                transform: "scale(1.1)",
-                transition: "all 0.3s ease-in-out",
-                backgroundColor: 'white'
-              },
-              zIndex: 2100,
+              top: 16,
+              right: 16,
+              bgcolor: "rgba(255,255,255,0.95)",
+              "&:hover": { bgcolor: "#fff" },
             }}
           >
-            <Close sx={{ color: "red" }} />
+            <Close fontSize="small" />
           </IconButton>
         </Box>
       )}
     </Box>
   );
 };
+
+const backButtonSx = {
+  width: 36,
+  height: 36,
+  flexShrink: 0,
+  color: "text.secondary",
+  border: "1px solid",
+  borderColor: "divider",
+  borderRadius: 1.5,
+  transition: "all 0.2s ease",
+  "&:hover": {
+    color: "primary.main",
+    borderColor: "primary.light",
+    bgcolor: "rgba(0, 32, 74, 0.04)",
+  },
+} as const;
 
 export default ProductDetail;

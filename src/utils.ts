@@ -2,6 +2,54 @@ import { add } from "date-fns";
 import { api } from "./api";
 
 
+import type { PrecoExibicao } from "./models/LinhaPreco";
+
+/** Formata preço em Real (pt-BR). Retorna null se inválido ou ≤ 0 (sob consulta). */
+export function formatProductPrice(preco: number): string | null {
+  const value = Number(preco);
+  if (!Number.isFinite(value) || value <= 0) {
+    return null;
+  }
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(value);
+}
+
+/** Formata objeto preco_exibicao da API para exibição em listagens. */
+export function formatPrecoExibicao(
+  exibicao: PrecoExibicao | null | undefined
+): string | null {
+  if (!exibicao) return null;
+
+  if (exibicao.tipo === "fixo" && exibicao.valor != null) {
+    return formatProductPrice(exibicao.valor);
+  }
+
+  if (exibicao.tipo === "faixa") {
+    if (exibicao.valor != null) {
+      return formatProductPrice(exibicao.valor);
+    }
+    if (exibicao.min != null && exibicao.max != null) {
+      const min = formatProductPrice(exibicao.min);
+      const max = formatProductPrice(exibicao.max);
+      if (min && max) return `${min} – ${max}`;
+    }
+  }
+
+  return null;
+}
+
+export const METRICAS_PRECO = [
+  { value: "altura", label: "Altura" },
+  { value: "largura", label: "Largura" },
+  { value: "area", label: "Área" },
+  { value: "comprimento", label: "Comprimento" },
+  { value: "peso", label: "Peso" },
+] as const;
+
+export const UNIDADES_METRICA = ["m", "cm", "mm", "m²", "kg"] as const;
+
 /** Ex.: "TELAS SOLDADAS" → "Telas Soldadas" */
 export function formatCategoryLabel(label: string): string {
   return label

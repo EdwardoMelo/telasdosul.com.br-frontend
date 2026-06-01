@@ -7,7 +7,7 @@ import {
   Outlet,
 } from "react-router-dom";
 import { ThemeProvider, createTheme, styled } from "@mui/material/styles";
-import { Box, Button, CssBaseline, IconButton } from "@mui/material";
+import { CssBaseline } from "@mui/material";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { UserProvider } from "./contexts/userContext";
 import './index.css'
@@ -31,11 +31,10 @@ import ProductDetail from "./pages/ProductDetail";
 import ProductForm from "./pages/ProductForm";
 import CategoriaForm from "./pages/CategoriaForm"; // Import CategoriaForm
 import Profile from "./pages/Profile";
-import {  WhatsApp } from "@mui/icons-material";
 import Contact from "./pages/Contact";
 import { NavProvider } from "./contexts/navContext";
 import { ProductProvider } from "./contexts/productContext";
-import { contactInfo, openWhatsappWithConversion } from "./utils";
+import GlobalWhatsAppFab from "./components/Layout/GlobalWhatsAppFab";
 import { FONT_BODY, FONT_DISPLAY } from "./theme/typography";
 
 // Configuração do cliente de consulta
@@ -164,7 +163,7 @@ const App = () => {
                       path="categorias/new"
                       element={<CategoriaForm />}
                     />{" "}
-                    {/* Changed to relative path */}A
+                    {/* Changed to relative path */}
                     <Route
                       path="categorias/:id/edit"
                       element={<CategoriaForm />}
@@ -187,40 +186,8 @@ const App = () => {
               </ProductProvider>
             </NavProvider>
           </UserProvider>
+          <GlobalWhatsAppFab />
         </BrowserRouter>
-        <Box
-          sx={{
-            height: 60,
-            width: "100%",
-            zIndex: 40,
-            position: "fixed",
-            bottom: 10,
-            left: 0,
-            backgroundColor: "transparent",
-            display: "flex",
-            gap: 2,
-            paddingX: 10,
-            justifyContent: "end",
-          }}
-        >
-          <IconButton
-            sx={{
-              backgroundColor: "white",
-              height: 60,
-              width: 60,
-              color: "white",
-              boxShadow: "0 0 10px 4px #39ff14", // Neon green shadow
-              "&:hover": {
-                boxShadow: "0 0 24px 8px #39ff14",
-              },
-            }}
-            onClick={() => openWhatsappWithConversion(`https://api.whatsapp.com/send?phone=${contactInfo.phone}&text=Oi, vim pelo site,gostaria de saber mais sobre os produtos e serviços da Telas do Sul!`)}
-          >
-            <WhatsApp sx={{ color: "green" }} />
-          </IconButton>
-
-          
-        </Box>
       </ThemeProvider>
     </QueryClientProvider>
   );
