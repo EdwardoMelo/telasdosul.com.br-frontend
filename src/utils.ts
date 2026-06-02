@@ -67,7 +67,7 @@ export const contactInfo = {
   instagram: "/",
   facebook: "/",
   linkedin: "/",
-  address: "Av. Dr Pompílio Gomes Sobrinho 22.856",
+  address: "Av. Dr Pompílio Gomes Sobrinho 22856",
 };
 
 
